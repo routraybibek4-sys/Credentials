@@ -1,0 +1,60 @@
+This activity means you checked the backup application, monitored backup jobs, and verified whether the server's data was backed up successfully.
+
+Here is how to perform this task as a Linux System Administrator.
+Step 1: Check backup job status
+First, identify which backup application your company uses, such as Veeam, NetBackup, Commvault, or a Linux backup script.
+
+If the backup is scheduled through cron, check:
+crontab -l
+sudo crontab -l
+sudo ls -l /etc/cron.d/
+
+
+On Ubuntu, you can review cron logs with:
+sudo grep CRON /var/log/syslog | tail -50
+
+
+On RHEL/Rocky Linux:
+sudo journalctl -u crond --since today
+
+
+These commands help identify scheduled jobs; they do not, by themselves, prove that a backup completed successfully.
+Step 2: Check backup logs
+For a custom backup script, inspect its log file:
+sudo tail -n 100 /var/log/backup.log
+
+
+Search for success or failure messages:
+sudo grep -iE 'success|completed|failed|error' /var/log/backup.log
+
+
+Replace /var/log/backup.log with the actual log path used by your backup application.
+Step 3: Verify the backup files
+For a file-based backup, check the destination:
+ls -lh /backup/
+df -h
+
+
+Confirm that the expected backup files exist, their sizes are reasonable, and the destination has sufficient free space.
+
+Important: A successful job status or existing backup file does not guarantee that the data can be restored. Follow your organization's procedure for test restores or backup-integrity checks.
+Step 4: Record the activity
+Activity: Backup Monitoring and Verification
+Work Performed:
+- Monitored backup application status and scheduled backup jobs.
+- Reviewed backup logs to identify successful, failed, or incomplete jobs.
+- Verified backup completion status and checked the availability of backup files.
+- Checked backup storage capacity and documented any failures or warnings.
+- Reported unsuccessful jobs for investigation and rerun as required.
+Outcome:
+Backup job status reviewed and completion documented. Backup integrity and recoverability confirmed only where verification or restore testing was performed.
+
+
+
+
+Common interview question
+Q: How do you verify that a backup completed successfully?
+
+Answer: I check the backup application's job status, review logs for errors, confirm the expected backup files are present, and verify the backup size and destination capacity. Where required, I perform a restore test to confirm that the backed-up data is recoverable.
+
+One question: Which backup application do you use in your office — Veeam, NetBackup, Commvault, a Linux backup script, or something else? I can give you the exact commands and practical steps for that tool.
