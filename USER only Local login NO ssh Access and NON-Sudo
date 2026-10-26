@@ -1,0 +1,128 @@
+You are logged in as root on an Ubuntu server, and you have created a normal user called PDC USER. You want that account to have these permissions:
+- Local login: Allowed through the Ubuntu console or VM console.
+- Sudo/root privileges: Not allowed.
+- SSH access: Not allowed.
+- Normal user account: Can log in locally, use permitted applications, and access its own files.
+We can configure this step by step. These instructions assume the account's Linux username is pdcuser (Linux usernames normally do not contain spaces). If your actual username is different, replace pdcuser in the commands.
+Step 1: Verify that the user exists
+Run these commands as root:
+id pdcuser
+getent passwd pdcuser
+
+
+The first command shows the user's UID and group memberships. The second shows the account's login shell and home directory.
+
+If the user does not exist, create it:
+adduser pdcuser
+
+
+Follow the prompts to set a password and create the home directory.
+Step 2: Remove sudo privileges
+Check the user's groups:
+groups pdcuser
+
+
+If the output includes sudo, remove the user from that group:
+deluser pdcuser sudo
+
+
+Ubuntu also has other ways of granting administrative privileges, so check for direct sudo rules:
+grep -R "pdcuser" /etc/sudoers /etc/sudoers.d/ 2>/dev/null
+
+
+If you find a matching rule, inspect it and remove or edit it safely using visudo or visudo -f /etc/sudoers.d/filename.
+
+Verify the result:
+groups pdcuser
+sudo -l -U pdcuser
+
+
+The user should not have administrative privileges. If sudo -l reports that the user may not run sudo, that is the expected result.
+Step 3: Deny SSH access for PDC USER only
+Ubuntu supports denying SSH access to a specific username using the DenyUsers directive in the SSH server configuration. This lets other authorized users continue using SSH. 
+
+OpenSSH daemon configuration file
++1
+
+
+
+3.1 Check whether SSH server is installed
+systemctl status ssh
+
+
+If SSH is installed and running, continue. If the service does not exist, SSH server may not be installed; the user cannot SSH into this machine through that service.
+3.2 Back up the configuration
+cp -a /etc/ssh/sshd_config /etc/ssh/sshd_config.bak
+
+
+3.3 Edit the SSH configuration
+nano /etc/ssh/sshd_config
+
+
+Add this line outside any Match block:
+DenyUsers pdcuser
+
+
+Save and exit: press Ctrl+O, Enter, then Ctrl+X.
+3.4 Validate and reload SSH
+First, validate the configuration:
+sshd -t
+
+
+If there is no output, the configuration syntax is valid. Then reload SSH:
+systemctl reload ssh
+
+
+Check the service:
+systemctl status ssh
+
+
+Important: Keep your current root/administrator console session open while applying the change. If SSH configuration validation fails, do not reload; correct the configuration first.
+3.5 Remove existing SSH keys for this user
+If the user has SSH public keys configured, remove them from the account so they cannot be used later if the SSH deny rule is changed:
+ls -la /home/pdcuser/.ssh/
+
+
+If the directory exists and contains keys, review it and remove the authorized_keys file if those keys are not needed:
+rm -f /home/pdcuser/.ssh/authorized_keys
+
+
+This removes the account's authorized SSH keys, so use it only if those keys are not required. The DenyUsers rule is the primary SSH restriction. 
+
+Ubuntu Server documentation
++1
+
+
+
+Step 4: Ensure local login remains enabled
+Check the user's login shell:
+getent passwd pdcuser
+
+
+The output should end with something like:
+/home/pdcuser:/bin/bash
+
+
+If the shell is /usr/sbin/nologin or /bin/false, set a normal shell:
+usermod -s /bin/bash pdcuser
+
+
+Make sure the account has a password:
+passwd pdcuser
+
+
+Do not lock the account password, because the user needs password-based local login.
+Step 5: Verify all three requirements
+Run these checks as root:
+id pdcuser
+sudo -l -U pdcuser
+sshd -T -C user=pdcuser,host=localhost,addr=127.0.0.1 | grep -i denyusers
+
+
+Expected results:
+Requirement	Expected result
+Local login	User can log in at the physical or VM console
+No sudo	No administrative privileges are granted
+No SSH	SSH authentication for pdcuser is denied
+
+Finally, log out of the root console and test logging in locally as pdcuser. From another machine, test SSH access using ssh pdcuser@SERVER_IP; the connection should be rejected for this user. Other authorized SSH accounts should remain unaffected.
