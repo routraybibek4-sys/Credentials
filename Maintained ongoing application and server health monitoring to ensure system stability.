@@ -1,0 +1,89 @@
+This activity means you continuously monitored application and server performance to ensure services were running properly, resources were available, and potential issues were identified early.
+Step-by-step: How to perform this task in Linux
+Step 1: Check server uptime and load
+uptime
+
+
+Shows how long the server has been running and its load averages.
+Step 2: Monitor CPU and processes
+top
+
+
+Check CPU utilization, memory consumption, and processes using excessive resources.
+
+If installed, use:
+mpstat 1 5
+
+
+Step 3: Check memory usage
+free -h
+
+
+Review available memory and swap usage to identify potential memory pressure.
+Step 4: Check disk space
+df -hT
+
+
+Identify filesystems approaching full capacity.
+
+To check disk I/O performance, if sysstat is installed:
+iostat -xz 1 5
+
+
+Step 5: Check application and server services
+For example, on RHEL or Rocky Linux:
+systemctl status httpd
+systemctl status sshd
+
+
+On Ubuntu, the SSH service is usually named ssh:
+systemctl status ssh
+
+
+Replace httpd with your actual application service.
+Step 6: Review errors and warnings
+sudo journalctl -p warning --since today
+
+
+To monitor new system log messages in real time:
+sudo journalctl -f
+
+
+Press Ctrl+C to stop following the logs.
+Step 7: Check application availability
+If the application uses HTTP or HTTPS, test its response:
+curl -I http://localhost
+
+
+For an HTTPS application:
+curl -I https://your-application-domain
+
+
+Replace the example domain with your actual application URL.
+Daily work report
+Activity: Application and Server Health Monitoring
+Work Performed:
+- Monitored server CPU, memory, disk utilization, and system load.
+- Checked application and system service availability.
+- Reviewed operating system logs for errors, warnings, and abnormal events.
+- Verified application responsiveness and investigated potential performance issues.
+- Identified resource utilization concerns and documented findings for follow-up.
+Outcome:
+Performed routine health checks to support system stability and application availability. Any identified issues were documented for further investigation and corrective action.
+
+
+
+
+What to check during daily monitoring
+Component	What to look for
+CPU	Sustained high utilization
+Memory	Low available memory or excessive swapping
+Disk	Filesystems nearing capacity
+Services	Failed or inactive services
+Logs	Repeated errors and warnings
+Application	Slow response or failed requests
+Network	Connectivity problems and timeouts
+
+Interview tip: If asked how you maintained server health, explain that you checked resource utilization, service status, application responsiveness, and system logs, then documented abnormalities and followed the organization's troubleshooting process.
+
+I can also create a simple visual diagram of a Linux server health-monitoring workflow.
