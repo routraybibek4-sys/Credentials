@@ -1,0 +1,88 @@
+This sentence means you checked the logs of an application server, virtual machine (VM), and operating system (OS) to find errors, warnings, and possible problems.
+
+If you want to perform this task as a Linux System Administrator, follow these practical steps.
+Step 1: Check operating system logs
+On a RHEL, Rocky Linux, or Ubuntu server, run:
+
+$$ sudo journalctl -p err -b
+
+
+- -p err — shows errors and more severe messages.
+- -b — shows messages from the current boot.
+To check warnings:
+sudo journalctl -p warning -b
+
+
+To review recent system logs:
+
+$$ sudo journalctl -n 100
+
+
+Step 2: Check application server logs
+First, identify the application service:
+
+$$systemctl --type=service --state=running
+
+
+For Apache HTTP Server on RHEL/Rocky Linux:
+
+$$ sudo tail -n 100 /var/log/httpd/error_log
+$$ sudo tail -n 100 /var/log/httpd/access_log
+
+
+For Apache on Ubuntu:
+
+$$ sudo tail -n 100 /var/log/apache2/error.log
+$$ sudo tail -n 100 /var/log/apache2/access.log
+
+
+To search for errors:
+$$ sudo grep -iE 'error|failed|critical|timeout' /var/log/httpd/error_log
+
+
+Use the log path appropriate to your application. Other applications may store logs under /var/log/ or in their own directories.
+Step 3: Check VM and hardware-related issues
+If the Linux server is running inside VMware or another virtualization platform, check the guest operating system:
+
+$$ uptime
+$$ free -h
+$$ df -h
+$$ lsblk
+
+
+Check for disk, memory, and kernel errors:
+
+$$ sudo journalctl -k -p warning -b
+
+
+If you have access to the VMware management console, also review the VM's CPU and memory utilization, storage latency, and VM events.
+
+Step 4: Identify errors and take action
+Issue found	What to investigate
+Disk I/O errors	Disk health, storage connectivity, SAN/NAS
+High memory usage	Memory consumption and application processes
+Filesystem full	Large files, log rotation, disk capacity
+Application service failed	Service status and application logs
+Network timeout	Network connectivity, DNS, firewall
+VM performance warning	CPU, memory, storage latency, hypervisor events
+
+Check a service with:
+
+$$ sudo systemctl status httpd
+
+
+Replace httpd with the actual service name. Do not restart production services without understanding the impact and following your change procedure.
+Step 5: Document your findings
+Record the date and time, server or VM name, log message, severity, action taken, and verification result.
+
+Example report format:
+
+**Activity:** Reviewed application server, VM, and operating system logs.
+
+**Checks performed:**
+- Reviewed system logs for errors and warnings.
+- Checked application service logs for failures and timeouts.
+- Checked VM resource utilization and filesystem usage.
+- Identified potential issues and documented findings.
+
+**Outcome:** Findings documented for follow-up. Any corrective action and successful resolution should be recorded only after verification.
